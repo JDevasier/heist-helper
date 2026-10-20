@@ -1,0 +1,22 @@
+# Event and timing review
+
+Reviewed through 0.4.14 against the [RuneScape Client API events](https://developer.runescape.com/rs/core/events.html).
+
+| Work | Trigger after this review | Timed work retained |
+| --- | --- | --- |
+| Loot and remaining-source counters | Initial snapshot, then relevant `VarTransmit` notifications. Direct VarBits and packed base updates are recognised; adjacent unrelated bits are filtered. One logic callback coalesces queued changes. | None during stable play. |
+| Per-body progress | Initial highlight activation and body loot/UID variable events. Cached remaining-rummage values are reused for completion and optional labels. | None. |
+| Safe eligibility | Initial boosted-level read, then `SkillTransmit` gameplay-level payload when eligibility changes. | None. |
+| Bag possession and heist identity | Backpack, instance, region/world and game-state events. Unknown-instance discovery wakes on recognised entity payloads. | Native readiness may lag the last notification: retry every half second for up to two seconds, then wait for another event. |
+| Loaded loot-source discovery | Scenery and NPC events, relevant MultiLoc controller changes, area changes, or a changed player tile. Cached scans have no time-based expiry. | No periodic rediscovery. `LocAdded` does not fire for MultiLoc state changes, so variable notifications also invalidate scenery. |
+| Player movement | `ServerLogic`, which runs after a server packet. Compare the cached local player's tile only while highlights are enabled. | This is the remaining observation fallback because the API has no player-position-changed event. Stable packets never search or sample counters. |
+| Body exhaustion | A reliably matched body slot reaches zero remaining rummages, even with labels or chat permission disabled. An optional chat fallback uses a Rummage selection and the exact senderless exhaustion message, with UID, tile and proximity validation. Unrelated chat is ignored. | A logic clock expires a selected chat-fallback target after 60 seconds. It performs no loot reads or entity searches. |
+| Source labels | `Draw` projects cached anchors each rendered frame. Text and counters remain cached. | Rendering only; no detection or source polling. |
+| Label/UI overlap | Initial label activation and interface/resize notifications cache panel references. Notification bursts coalesce into one logic callback. | Draw checks cached panel bounds/visibility and rectangle overlap so moving/closing panels work without a full UI traversal. No loot/source polling or hierarchy scans run from Draw. Watches detach with labels. |
+| 2D box perimeter | `Draw` selects the perimeter from cached corners, capped at 20 updates per second. Stable camera projections reuse existing native data. | Rendering only; no detection or source polling. Native 3D boxes need no frame callback. |
+| Settings, drag and viewport layout | Native button, pointer, resize, content/settings-layer and window-size events. | No component timers. |
+| Failed native UI/geometry creation | Retry after the notifying event, then later UI/area/source events can restart recovery. | Half-second retries for at most two seconds; no unbounded recovery polling. |
+
+The general logic subscription is detached when no event work, bounded retry or selected-body deadline remains. Source/skill discovery never runs from drawing callbacks. Stable play and shutdown are covered by behavior tests, including 1,000 unchanged server packets and event bursts.
+
+The source overlay keeps its existing dimensions. Its `Needed` legend applies to every source icon. The counts form one smallest-source plan using known remaining base rewards and currently accessible safes. The footer shows the base maximum: current loot plus accessible remaining base rewards, capped at 500. When base loot cannot reach 500, all accessible sources remain in the plan rather than becoming unknown. Bonuses already earned affect the authoritative bag total; future bonus rolls are not assumed. Arsenal's minimum and maximum remain unknown until ordinary and ornate chest slots can be mapped reliably.

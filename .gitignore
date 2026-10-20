@@ -1,0 +1,23 @@
+# Local tooling and generated output
+.tools/
+.local/
+__pycache__/
+*.py[cod]
+*.zip
+
+# Captured game data and temporary debugging files
+data/temp_delete_after_consumption.txt
+*.log
+*.db
+*.db-shm
+*.db-wal
+*.tmp
+
+# Local secrets and editor/OS files
+.env
+.env.*
+!.env.example
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
