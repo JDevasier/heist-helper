@@ -1,5 +1,5 @@
 -- Automatic loot/source tracking reads the game's named progress fields.
-local VERSION = "0.4.14"
+local VERSION = "0.4.15"
 local Heists = require("data/heists")
 local AutoTracker = require("lib/auto_tracker")
 local Tracking = require("data/tracking")
