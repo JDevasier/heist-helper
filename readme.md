@@ -1,66 +1,91 @@
 # Heist Helper
 
-Keep your next loot source and your progress toward 500 in sight. Heist Helper supports the Vault of Hereditas and Asuran Arsenal with automatic tracking, a movable overlay and configurable object highlights.
+Keep your next loot source and your progress toward 500 in sight. Heist Helper supports the Vault of Hereditas and Asuran Arsenal with automatic loot tracking, a movable overlay and configurable object highlights.
 
 ## Features
 
-- Track current loot, the base maximum, and bodies, chests and safes needed to finish.
-- Estimate the sources needed to reach 500 in Hereditas.
-- Highlight loot and useful objects with 3D boxes or a 2D outer perimeter.
-- Show highlights through walls, or use normal world occlusion.
-- Hide completed sources or turn them grey.
-- Optionally display source names and base-loot values above objects, with per-body looting progress.
-- Move the tracker and retain your preferences across reloads.
+- See your current loot, the base maximum available and any shortfall.
+- Find the fewest sources needed to reach 500 in Hereditas.
+- Highlight bodies, chests, safes and useful objects with 3D boxes or a 2D outline.
+- Show highlights through walls, and hide completed sources or turn them grey.
+- Enable optional source labels with loot values and per-body looting progress.
+- Move the tracker and save your preferred settings.
 
 ## Installation
 
-Extract the plugin into the RuneScape beta cache's `dev_plugins/heist-helper` directory. Place `main.lua`, `plugin.json`, `data/` and `lib/` directly inside that directory.
+### 1. Start the plugin beta
 
-In the beta console, run:
+Use the **RuneScape plugin beta** for this manual installation. Jagex's [setup guide](https://developer.runescape.com/rs/tutorial/1helloworld.html#joining-the-environment) includes the launch links. Launch it at least once to create its cache folder.
+
+### 2. Find your plugin folder
+
+These are the default installation locations. Replace `<you>` with your computer's username.
+
+| System | Heist Helper folder |
+| --- | --- |
+| Windows | `C:\ProgramData\Jagex\RuneScape-BETA\dev_plugins\heist-helper` |
+| macOS | `/Users/<you>/Jagex/RuneScape-BETA/dev_plugins/heist-helper` |
+| Linux (Bolt) | `/home/<you>/.local/share/bolt-launcher/jagex/RuneScape-BETA/dev_plugins/heist-helper` |
+
+On Windows, paste `C:\ProgramData\Jagex\RuneScape-BETA` into File Explorer's address bar to open the cache, even if ProgramData is hidden. Create `dev_plugins` and then `heist-helper` if they do not exist.
+
+**Custom cache or sandbox:** click the cog on the client's loading window to find the cache used by that client. The cache contains `.jcache` files; create `dev_plugins/heist-helper` inside it. A sandboxed client can use a different cache from the regular client.
+
+### 3. Extract the release
+
+Open the [latest release](https://github.com/JDevasier/heist-helper/releases/latest) and download the attached `heist-helper-<version>.zip` under **Assets**. Extract its contents into the `heist-helper` folder from the previous step.
+
+The result should look like this:
+
+```text
+RuneScape-BETA/
+└── dev_plugins/
+    └── heist-helper/
+        ├── main.lua
+        ├── plugin.json
+        ├── data/
+        ├── lib/
+        ├── docs/
+        └── readme.md
+```
+
+`main.lua` and `plugin.json` must be directly inside `dev_plugins/heist-helper`. An extra nested folder will prevent the client from finding the plugin.
+
+### 4. Enable it in-game
+
+Log into a beta world and open the console with **Alt + the key directly below Esc**. Run these commands one at a time:
 
 ```text
 prf
+plist
 pon heist-helper
 ```
 
-After updating an enabled installation, run `prl heist-helper`.
+`plist` should include `heist-helper`. After enabling it, the console shows a Heist Helper version message. Close the console with the same keyboard shortcut.
 
-## Settings
+## Using Heist Helper
 
-The heist is detected automatically while carrying stolen goods. Open the plugin's settings or ribbon entry to adjust the overlay and highlights.
+The overlay and highlights activate automatically inside a supported heist while you are carrying stolen goods.
 
-Each source counter shows how many are **needed** in one plan using the fewest sources to reach 500 from known base rewards. They are not independent requirements for every source type. **Max possible** shows current loot plus accessible remaining base rewards, capped at 500. If that estimate is below 500, the counters include all accessible sources to reach it. Future bonus loot can raise the estimate. Unknown estimates show `?`.
+- **Move the tracker:** drag its **Heist loot** header. Use **Reset position** in settings to restore its position.
+- **Choose your highlights:** open Heist Helper's settings or ribbon panel to toggle source types, through-wall visibility and 2D/3D boxes.
+- **Show loot labels:** turn on **Loot labels**. Labels and safe highlights start off; completed highlights start hidden.
+- **Read the estimate:** the source counts form one plan to reach 500. **Max possible** uses remaining base rewards; future bonus loot can raise it. A shortfall means those base rewards are insufficient.
 
-A base-loot shortfall appears beside the current loot total; that space stays empty when there is no shortfall.
+Arsenal currently supports actual loot tracking and object highlights; its needed-source and maximum estimates display `?`.
 
-Drag the **Heist loot** header to move the tracker. **Reset position** restores the default location. The **3D / 2D** buttons choose a full wireframe or the outer perimeter of the same bounds. Loot labels and safe highlights default off. Completed-source highlights default to hidden.
+## Updating
 
-## Body-completion permission
+1. Disable the plugin with `poff heist-helper`.
+2. Extract the latest release into the same `heist-helper` folder, replacing existing files.
+3. Run `prf`, then `pon heist-helper`.
 
-Bodies with a reliable NPC-to-loot-slot match disappear automatically when their remaining rummages reach zero. This works with labels disabled and needs no chat permission. Optional `chatAccess` provides a fallback for unmatched bodies by associating the game's exhaustion message with a recently selected body. To enable it in the beta console:
+The client retains your saved settings. For Lua-only edits to an enabled installation, `prl heist-helper` reloads the plugin.
 
-```text
-ppe heist-helper chatAccess
-ppr heist-helper
-```
+## Troubleshooting
 
-Rummage an unmatched exhausted body to confirm its completion through this fallback. Automatic loot totals and chest-state filtering work independently of this permission.
+- **Not listed by `plist`:** check the running client's cache location and the folder layout above, then run `prf` again.
+- **Enabled, but no overlay:** enter a supported heist with stolen goods in your backpack. Check that **Visible** is enabled in the plugin settings, then try **Reset position**.
+- **A fully looted body stays highlighted:** optional chat access provides a completion fallback. Run `ppe heist-helper chatAccess`, then `ppr heist-helper`, and rummage the body again. Normal automatic tracking does not require this permission.
 
-## Tracking limits
-
-Actual loot is read directly from game state, including bonuses and penalties. Hereditas's sources-needed estimate uses remaining base rewards; future double/triple-loot rolls are not predicted. Safes below your current boosted Thieving requirement are excluded from the estimate.
-
-Arsenal supports actual loot tracking and object highlights. Its sources-needed and maximum estimates remain unavailable until ordinary and ornate chest-state slots can be distinguished reliably.
-
-Highlights cover loaded objects nearby on your floor. They outline enclosing bounds rather than exact model silhouettes. Guard highlights, minimap markers and hidden-puzzle solutions are not included.
-
-Body labels show the NPC's name and `Looted 0/10` through `Looted 10/10`, based on remaining rummages. This is base-loot progress; bonus rewards are included in the bag tracker. A body whose progress cannot be matched reliably displays `?/10`.
-
-Loot labels hide when their screen rectangles overlap detected UI panels. Panel references are cached on interface changes; rendering checks their current geometry without searching the UI tree every frame. Unusual native interface layouts may need further mapping.
-
-## Documentation
-
-- [Implementation notes](docs/IMPLEMENTATION.md)
-- [Event and timing review](docs/EVENT_REVIEW.md)
-- [Feature status](docs/FEATURE_CHECKLIST.md)
-- [Arsenal definition reference](docs/ARSENAL_IDS.md)
+For other problems, [open an issue](https://github.com/JDevasier/heist-helper/issues) with the plugin version and any console error. Developer details are in [Implementation notes](docs/IMPLEMENTATION.md).
