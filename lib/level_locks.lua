@@ -1,6 +1,7 @@
--- Which loot sources the player's boosted Agility can't reach. Each locked source is
--- named by its MultiLoc parent: highlights match it by parent ID, and its multiVar is
--- the state field the tracker counts, so both drop the same source.
+-- Which loot sources the player's boosted Agility can't reach
+-- Each locked source is named by its MultiLoc parent: highlights
+-- match it by parent ID, and its multiVar is the state field
+-- the tracker counts, so both drop the same source
 local Sources = require("data/locked_sources")
 local Locks = {}
 
@@ -10,7 +11,7 @@ local function definition(name)
 end
 
 -- Returns { parents = { [configID] = true }, fields = { [fieldName] = true } } for the
--- sources above the given level, or nil when none are locked.
+-- sources above the given level, or nil when none are locked
 function Locks.locked(heist, agility)
     local sources = Sources[heist]
     if sources == nil or type(agility) ~= "number" then return nil end

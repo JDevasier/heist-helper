@@ -1,6 +1,6 @@
--- Loot sources behind Agility shortcuts, by the MultiLoc parent that controls each one.
--- A source reachable more than one way lists its lowest requirement. The comments give
--- the source-map tile and the obstacle, as recorded in game, to check an entry against.
+-- Loot sources behind Agility shortcuts, by the MultiLoc parent that controls each one
+-- A source reachable more than one way lists its lowest requirement
+-- The comments give the source-map tile and the obstacle to check an entry against
 return {
     hereditas = {
         { loc = "HEIST_KHARIDET_SHADOW_CHEST_MULTI_1", agility = 72 }, -- 949, 2889, 0: crevice
