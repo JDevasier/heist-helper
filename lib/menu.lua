@@ -2,7 +2,7 @@
 -- Switches update their existing components in place.
 local ScrollPanel = require("lib/scroll_panel")
 local Menu = {}
-local CONTENT_HEIGHT = 320
+local CONTENT_HEIGHT = 344
 local INK, MUTED, GOLD = 0xE2E8EDFF, 0x9EAFBBFF, 0xD8C18FFF
 
 function Menu.build(host, app)
@@ -87,13 +87,15 @@ function Menu.build(host, app)
             fill(panel, 0, 0, width - 24, height, 0x1B2933D9)
             return panel, width - 24
         end
-        local overlay, overlayWidth = card(32, 52)
+        local overlay, overlayWidth = card(32, 76)
         text(overlay, "LOOT OVERLAY", 10, 5, overlayWidth - 20, 20, GOLD)
         checkbox(overlay, "Visible", 10, 26, overlayWidth - 146,
             function() return app.overlay.enabled end, app.toggleOverlay)
         button(overlay, "Reset position", overlayWidth - 128, 25, 118, 25, app.resetOverlayPosition)
+        checkbox(overlay, "Show on bag", 10, 50, overlayWidth - 146,
+            function() return app.bagLabel.enabled end, app.toggleBagLabel)
 
-        local highlights, highlightWidth = card(94, 216)
+        local highlights, highlightWidth = card(118, 216)
         text(highlights, "HIGHLIGHTS", 10, 7, highlightWidth - 108, 22, GOLD)
         checkbox(highlights, "Enabled", highlightWidth - 96, 6, 88,
             function() return app.highlights.enabled end, app.toggleHighlights)

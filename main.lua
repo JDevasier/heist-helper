@@ -7,6 +7,7 @@ local Detector = require("lib/heist_detector")
 local Context = require("lib/heist_context")
 local Menu = require("lib/menu")
 local LootOverlay = require("lib/loot_overlay")
+local BagLabel = require("lib/bag_label")
 local LootHighlights = require("lib/loot_highlights")
 local SourceState = require("lib/source_state")
 local profiles = {}
@@ -16,6 +17,7 @@ local detector = Detector.new()
 local function currentKey() return currentHeist ~= nil and currentHeist.key or "unknown" end
 local tracker = AutoTracker.new(Tracking)
 local overlay = LootOverlay.new(PersistentDB, log)
+local bagLabel = BagLabel.new(PersistentDB, log)
 local synchronizeRuntime, wake
 local sourceState = SourceState.new()
 local highlights = LootHighlights.new(log, PersistentDB:GetBool("throughWalls"), sourceState)
@@ -98,6 +100,7 @@ local function clearWorld()
     movementPlayer, movementTile = nil, nil
     if synchronizeChat ~= nil then synchronizeChat() end
     overlay:update(tracker)
+    bagLabel:update(tracker)
     if synchronizeRuntime ~= nil then synchronizeRuntime() end
 end
 
@@ -134,7 +137,7 @@ end
 
 local app = {
     version = VERSION,
-    highlights = highlights, overlay = overlay,
+    highlights = highlights, overlay = overlay, bagLabel = bagLabel,
     toggleHighlights = function()
         highlights:toggle() synchronizeChat()
         detectionDirty, highlightsDirty, bodiesDirty = true, true, true
@@ -154,6 +157,7 @@ local app = {
         wake(false)
     end,
     resetOverlayPosition = function() overlay:resetPosition() end,
+    toggleBagLabel = function() bagLabel:setEnabled(not bagLabel.enabled, tracker) end,
     toggleRole = function(role)
         highlights:setRoleEnabled(role, not highlights.roles[role])
         detectionDirty, highlightsDirty = true, true
@@ -252,6 +256,7 @@ local function onLogic(event)
     end
     local previousOverlayRoot = overlay.root
     overlay:update(tracker)
+    bagLabel:update(tracker)
     if previousOverlayRoot ~= overlay.root then highlights.labels:queueUI() end
     local pending = contextPending
     -- Missing native UI/geometry can settle after the notifying event. Retry
@@ -447,6 +452,8 @@ function PluginShutdown()
     savePreferences()
     overlay:clear()
     overlay:save()
+    bagLabel:clear()
+    bagLabel:save()
 end
 
 log("Heist Helper " .. VERSION .. " loaded. Heist selection and loot updates are automatic. Source counters show needed; maximum uses remaining base loot.")

@@ -9,6 +9,7 @@
 | Remaining sources | Bodies where applicable, combined chests including final chest, safes and total |
 | Hereditas estimate | Minimum-source plan using remaining base rewards, partial bodies and boosted-level safe eligibility |
 | Overlay | Movable tracker, progress bar, needed source icons, base maximum and saved position |
+| Bag total | Current loot on the stolen-goods bag's backpack icon; follows panel moves and slot changes, hidden while dragged; optional |
 | Highlights | Bodies, chests, safes, anchors/pylons, doors and controls as applicable |
 | Display | 3D wireframe or 2D outer perimeter, source switches and through-wall option |
 | Completion | Explicit object states and body exhaustion confirmation; Hide/Grey modes |

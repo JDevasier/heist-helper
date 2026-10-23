@@ -5,6 +5,7 @@ Keep your next loot source and your progress toward 500 in sight. Heist Helper s
 ## Features
 
 - See your current loot, the base maximum available and any shortfall.
+- See your current loot on the stolen-goods bag in your backpack.
 - Find the fewest sources needed to reach 500 in Hereditas.
 - Highlight bodies, chests, safes and useful objects with 3D boxes or a 2D outline and adjustable line thickness (1–10 px).
 - Show highlights through walls, and hide completed sources or turn them grey.
@@ -68,6 +69,7 @@ pon heist-helper
 The overlay and highlights activate automatically inside a supported heist while you are carrying stolen goods.
 
 - **Move the tracker:** drag its **Heist loot** header. Use **Reset position** in settings to restore its position.
+- **Loot on the bag:** the current loot is shown on the stolen-goods bag. Turn off **Show on bag** in settings to hide it. It hides while the bag is dragged and returns when you drop it.
 - **Choose your highlights:** open Heist Helper's settings or ribbon panel to toggle source types, through-wall visibility and 2D/3D boxes.
 - **Show loot labels:** turn on **Loot labels**. Labels and safe highlights start off; completed highlights start hidden.
 - **Read the estimate:** the source counts form one plan to reach 500. **Max possible** uses remaining base rewards; future bonus loot can raise it. A shortfall means those base rewards are insufficient.
