@@ -72,6 +72,12 @@ function Highlights:setCompletedMode(mode)
     self.completedMode = mode == "grey" and "grey" or "hide"
 end
 
+-- Sources the player's levels can't reach: locked parents (Agility shortcuts) and,
+-- below the Thieving requirement, safes. Either set may be nil when nothing is hidden
+function Highlights:setLocked(parents, safes)
+    self.lockedParents, self.lockedSafes = parents, safes == true
+end
+
 function Highlights:setThroughWalls(enabled)
     self.throughWalls = enabled == true
     for _, entry in pairs(self.entries) do
@@ -207,6 +213,9 @@ function Highlights:update(tick, heist, scan, scoped)
                 if role == "safe" and not (current ~= nil and current.role == "safe" and current.state ~= nil)
                     and not (heist == "hereditas" and entity.config ~= nil
                     and entity.config.configName == "HEIST_KHARIDET_SAFE_LOCKED") then role = nil end
+                if role ~= nil and self.lockedParents ~= nil
+                    and self.lockedParents[entity.parentConfigID or entity.configID] then role = nil end
+                if role == "safe" and self.lockedSafes then role = nil end
                 local coord = entity.coordGrid
                 if COLOURS[role] ~= nil and self.roles[role] and coord ~= nil and coord.level == origin.level then
                     local key = group[1] .. ":" .. (group[1] == "npc" and tostring(entity.uid)

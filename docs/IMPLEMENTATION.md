@@ -32,6 +32,8 @@ Each rendered frame reads bounds/visibility from cached component references and
 
 Body labels use the NPC's display name and a second line, `Looted 0/10` through `Looted 10/10`. The eight `HEIST_PICKPOCKET_n_NPC_UID` fields (12501–12508) associate each visible NPC with the tracker's cached remaining-rummage value. An explicit per-body MultiNPC controller can also establish the slot. Five remaining rummages means zero base points looted; zero means ten. Unknown, ambiguous or invalid mappings display `?/10`. These are base depletion points; bonus loot is reflected in the bag total independently. A confirmed exhaustion message also displays 10/10 in grey completion mode.
 
+Sources behind Agility shortcuts are listed in `data/locked_sources.lua` by the MultiLoc parent that controls each one, with the lowest Agility level of any route to it (Hereditas crevices 72; Arsenal crevices 85 and rubble 75). Below that boosted level, `lib/level_locks.lua` gives highlights the locked parent IDs to skip, and the tracker the parents' `multiVar` state fields to leave out of reward estimates, the same treatment as safes below the Thieving requirement. `hideAgilityLocked` and `hideLockedSafes` (both default on) turn this off; with locked safes hidden, safe highlights also follow the boosted Thieving check.
+
 Line thickness is saved as `highlightLineWidth`, with integer values from 1 to 10 pixels and a default of 4. Changes update existing native shapes in both display modes; newly discovered highlights inherit the setting. Thickness changes do not rebuild meshes, search entities or attach runtime callbacks.
 
 ## Runtime cost and lifecycle
