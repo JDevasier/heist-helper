@@ -2,7 +2,7 @@
 -- Switches update their existing components in place.
 local ScrollPanel = require("lib/scroll_panel")
 local Menu = {}
-local CONTENT_HEIGHT = 288
+local CONTENT_HEIGHT = 320
 local INK, MUTED, GOLD = 0xE2E8EDFF, 0x9EAFBBFF, 0xD8C18FFF
 
 function Menu.build(host, app)
@@ -93,7 +93,7 @@ function Menu.build(host, app)
             function() return app.overlay.enabled end, app.toggleOverlay)
         button(overlay, "Reset position", overlayWidth - 128, 25, 118, 25, app.resetOverlayPosition)
 
-        local highlights, highlightWidth = card(94, 184)
+        local highlights, highlightWidth = card(94, 216)
         text(highlights, "HIGHLIGHTS", 10, 7, highlightWidth - 108, 22, GOLD)
         checkbox(highlights, "Enabled", highlightWidth - 96, 6, 88,
             function() return app.highlights.enabled end, app.toggleHighlights)
@@ -144,6 +144,18 @@ function Menu.build(host, app)
         hide = button(highlights, "Hide", highlightWidth - 128, 148, 56, 26, function() choose("hide") end, false)
         grey = button(highlights, "Grey", highlightWidth - 68, 148, 58, 26, function() choose("grey") end, false)
         syncMode()
+        text(highlights, "Thickness", 10, 181, highlightWidth - 128, 26, MUTED)
+        local thickness = text(highlights, tostring(app.highlights.lineWidth) .. " px",
+            highlightWidth - 80, 181, 44, 26)
+        local function changeWidth(delta)
+            local previous = app.highlights.lineWidth
+            app.setLineWidth(app.highlights.lineWidth + delta)
+            if app.highlights.lineWidth ~= previous then
+                thickness.content = tostring(app.highlights.lineWidth) .. " px"
+            end
+        end
+        button(highlights, "-", highlightWidth - 108, 180, 24, 26, function() changeWidth(-1) end)
+        button(highlights, "+", highlightWidth - 34, 180, 24, 26, function() changeWidth(1) end)
         scroll:setContentHeight(CONTENT_HEIGHT)
         -- Resize only rebuilds when available content width changes.
         layer:Subscribe(ui.Hook.ONRESIZE, function()
