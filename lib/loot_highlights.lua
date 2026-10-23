@@ -24,7 +24,7 @@ function Highlights.new(output, throughWalls, sourceState)
         counts = { body = 0, chest = 0, safe = 0, anchor = 0, door = 0, control = 0 }, output = output, warned = false,
         roles = { body = true, chest = true, safe = false, anchor = true, door = true, control = true },
         throughWalls = throughWalls ~= false, completedMode = "hide", scoped = false,
-        displayType = "3d", outlines = BoxOutline.new(output),
+        displayType = "3d", lineWidth = 4, outlines = BoxOutline.new(output),
         sourceState = sourceState or SourceState.new(), labels = SourceLabels.new(output) }, Highlights)
 end
 
@@ -76,6 +76,16 @@ function Highlights:setThroughWalls(enabled)
     self.throughWalls = enabled == true
     for _, entry in pairs(self.entries) do
         if entry.shape ~= nil and entry.shape.isValid then entry.shape.ignoreDepth = self.throughWalls end
+    end
+end
+
+function Highlights:setLineWidth(value)
+    if type(value) ~= "number" or value ~= value or math.abs(value) == math.huge then value = 4 end
+    local width = math.max(1, math.min(10, math.floor(value + 0.5)))
+    if self.lineWidth == width then return end
+    self.lineWidth = width
+    for _, entry in pairs(self.entries) do
+        if entry.shape ~= nil and entry.shape.isValid then entry.shape.lineWidth = width end
     end
 end
 
@@ -147,7 +157,7 @@ function Highlights:build(entry, coord, width, length, role, bounds, markerScale
     if shape == nil then return false end
     shape.visible, shape.ignoreDepth = false, self.throughWalls
     entry.visible, entry.drawVisible = false, false
-    shape.lineWidth, shape.colour = 4, COLOURS[role]
+    shape.lineWidth, shape.colour = self.lineWidth, COLOURS[role]
     entry.drawColour = COLOURS[role]
     shape.translation = Vector3.new(centre.x, centre.y, centre.z)
     if not shape:SetShapeData(mesh) then shape:Destroy() entry.shape = nil return false end

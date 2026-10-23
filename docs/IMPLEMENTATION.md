@@ -32,6 +32,8 @@ Each rendered frame reads bounds/visibility from cached component references and
 
 Body labels use the NPC's display name and a second line, `Looted 0/10` through `Looted 10/10`. The eight `HEIST_PICKPOCKET_n_NPC_UID` fields (12501–12508) associate each visible NPC with the tracker's cached remaining-rummage value. An explicit per-body MultiNPC controller can also establish the slot. Five remaining rummages means zero base points looted; zero means ten. Unknown, ambiguous or invalid mappings display `?/10`. These are base depletion points; bonus loot is reflected in the bag total independently. A confirmed exhaustion message also displays 10/10 in grey completion mode.
 
+Line thickness is saved as `highlightLineWidth`, with integer values from 1 to 10 pixels and a default of 4. Changes update existing native shapes in both display modes; newly discovered highlights inherit the setting. Thickness changes do not rebuild meshes, search entities or attach runtime callbacks.
+
 ## Runtime cost and lifecycle
 
 Initialisation reads 31 distinct tracking fields in Hereditas and 24 in Arsenal. Relevant `VarTransmit` events queue a fresh snapshot on the next client logic turn; a packet's notifications coalesce into one refresh. Both direct VarBits and packed base-variable updates are recognised. Masks filter unrelated suspicion, stealth, history and antispam bits. Stable play performs no recurring loot reads. `SkillTransmit` uses the boosted-level payload to update safe access only when its eligibility changes.

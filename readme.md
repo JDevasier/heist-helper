@@ -6,7 +6,7 @@ Keep your next loot source and your progress toward 500 in sight. Heist Helper s
 
 - See your current loot, the base maximum available and any shortfall.
 - Find the fewest sources needed to reach 500 in Hereditas.
-- Highlight bodies, chests, safes and useful objects with 3D boxes or a 2D outline.
+- Highlight bodies, chests, safes and useful objects with 3D boxes or a 2D outline and adjustable line thickness (1–10 px).
 - Show highlights through walls, and hide completed sources or turn them grey.
 - Enable optional source labels with loot values and per-body looting progress.
 - Move the tracker and save your preferred settings.

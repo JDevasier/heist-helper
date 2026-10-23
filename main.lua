@@ -1,5 +1,5 @@
 -- Automatic loot/source tracking reads the game's named progress fields.
-local VERSION = "0.4.15"
+local VERSION = "0.4.16"
 local Heists = require("data/heists")
 local AutoTracker = require("lib/auto_tracker")
 local Tracking = require("data/tracking")
@@ -22,6 +22,7 @@ local highlights = LootHighlights.new(log, PersistentDB:GetBool("throughWalls"),
 highlights:setCompletedMode(PersistentDB:GetString("completedMode"))
 highlights:setLabelsEnabled(PersistentDB:GetBool("showSourceLabels") == true)
 highlights:setDisplayType(PersistentDB:GetString("highlightDisplayType"))
+highlights:setLineWidth(PersistentDB:GetInt("highlightLineWidth"))
 local roleSettings = { chest = "showChests", safe = "showSafes", anchor = "showAnchors",
     door = "showDoors", control = "showControls" }
 local savedRoles = {}
@@ -43,9 +44,14 @@ local savedThroughWalls = highlights.throughWalls
 local savedCompletedMode = highlights.completedMode
 local savedSourceLabels = highlights.labels.enabled
 local savedDisplayType = highlights.displayType
+local savedLineWidth = highlights.lineWidth
 local chatGranted, chatAttached = false, false
 
 local function savePreferences()
+    if savedLineWidth ~= highlights.lineWidth then
+        if PersistentDB:SetInt("highlightLineWidth", highlights.lineWidth) then savedLineWidth = highlights.lineWidth
+        else log("Heist Helper: line thickness could not be saved; will retry on shutdown.") end
+    end
     if savedDisplayType ~= highlights.displayType then
         if PersistentDB:SetString("highlightDisplayType", highlights.displayType) then savedDisplayType = highlights.displayType
         else log("Heist Helper: display-type preference could not be saved; will retry on shutdown.") end
@@ -141,6 +147,7 @@ local app = {
         savePreferences()
     end,
     setDisplayType = function(mode) highlights:setDisplayType(mode) savePreferences() end,
+    setLineWidth = function(width) highlights:setLineWidth(width) savePreferences() end,
     toggleOverlay = function()
         overlay:setEnabled(not overlay.enabled, tracker)
         highlights.labels:queueUI()
