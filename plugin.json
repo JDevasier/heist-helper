@@ -1,6 +1,6 @@
 {
   "name": "Heist Helper",
-  "version": "0.4.17",
+  "version": "0.4.16",
   "contactEmailAddress": "devasierjacob@gmail.com",
   "requiredPermissions": [],
   "optionalPermissions": ["chatAccess"],
