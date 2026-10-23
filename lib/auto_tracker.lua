@@ -49,11 +49,13 @@ function Tracker:reset()
     self.active = false
     self.resolved = {}
     self.values = {}
-    self.sampledProfile, self.sampledSafes = nil, nil
+    self.sampledProfile, self.sampledSafes, self.sampledExcluded = nil, nil, nil
     self:publish()
 end
 
-function Tracker:update(tick, profile, inHeist, includeSafes)
+-- `excluded` names state fields of sources the player can't reach (Agility shortcuts)
+-- like unreachable safes, they stay counted as remaining but add no reward
+function Tracker:update(tick, profile, inHeist, includeSafes, excluded)
     if type(inHeist) == "function" then inHeist = inHeist() end
     if not inHeist then
         if self.active or self.sampledProfile ~= nil then self:reset() end
@@ -71,6 +73,7 @@ function Tracker:update(tick, profile, inHeist, includeSafes)
     -- Stable samples do not recount, sort or publish UI work.
     local values, sampledNames = {}, {}
     local changed = self.sampledProfile ~= profile or self.sampledSafes ~= includeSafes
+        or self.sampledExcluded ~= excluded
     local function sample(field)
         if sampledNames[field.name] then return end
         sampledNames[field.name] = true
@@ -85,7 +88,7 @@ function Tracker:update(tick, profile, inHeist, includeSafes)
     end
     for _, field in ipairs(mapping.aggregateChests ~= nil and mapping.aggregateChests.fields or {}) do sample(field) end
     self.values = values
-    self.sampledProfile, self.sampledSafes = profile, includeSafes
+    self.sampledProfile, self.sampledSafes, self.sampledExcluded = profile, includeSafes, excluded
     if not changed then return end
     local loot = mapping.loot ~= nil and values[mapping.loot.name] or nil
     if not integer(loot) or loot < 0 or loot > 500 then loot = nil end
@@ -102,7 +105,7 @@ function Tracker:update(tick, profile, inHeist, includeSafes)
                 if group.invert then value = 1 - value end
                 if value > 0 then
                     remaining = remaining + 1
-                    if not source.safe or includeSafes then
+                    if (not source.safe or includeSafes) and not (excluded ~= nil and excluded[field.name]) then
                         rewards[#rewards + 1] = {
                             points = group.pointsPerUnit ~= nil and value * group.pointsPerUnit or source.points,
                             role = source.key == "body" and "body" or (source.safe and "safe" or "chest"),

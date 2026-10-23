@@ -1,5 +1,5 @@
 -- Automatic loot/source tracking reads the game's named progress fields.
-local VERSION = "0.4.17"
+local VERSION = "0.4.18"
 local Heists = require("data/heists")
 local AutoTracker = require("lib/auto_tracker")
 local Tracking = require("data/tracking")
@@ -10,6 +10,7 @@ local LootOverlay = require("lib/loot_overlay")
 local BagLabel = require("lib/bag_label")
 local LootHighlights = require("lib/loot_highlights")
 local SourceState = require("lib/source_state")
+local Locks = require("lib/level_locks")
 local profiles = {}
 for _, profile in ipairs(Heists) do profiles[profile.key] = profile end
 local currentHeist = nil
@@ -41,6 +42,11 @@ local bagPresent, contextDirty, wakeNeeded = false, true, true
 local contextProbeUntil, retryAt, retryUntil = nil, nil, nil
 local trackingDirty, detectionDirty, highlightsDirty, bodiesDirty = true, true, true, true
 local skillDirty, safeEligible = true, false
+-- Hiding what the player's boosted levels can't reach: Agility shortcuts and safes
+local agilityLevel, locks, applyLocks = nil, nil, nil
+local hideLockedSafes = PersistentDB:GetBool("hideLockedSafes") ~= false
+local hideAgilityLocked = PersistentDB:GetBool("hideAgilityLocked") ~= false
+local savedLockedSafes, savedAgilityLocked = hideLockedSafes, hideAgilityLocked
 local movementPlayer, movementTile
 local savedThroughWalls = highlights.throughWalls
 local savedCompletedMode = highlights.completedMode
@@ -50,6 +56,14 @@ local savedLineWidth = highlights.lineWidth
 local chatGranted, chatAttached = false, false
 
 local function savePreferences()
+    if savedLockedSafes ~= hideLockedSafes then
+        if PersistentDB:SetBool("hideLockedSafes", hideLockedSafes) then savedLockedSafes = hideLockedSafes
+        else log("Heist Helper: locked-safe setting could not be saved; will retry on shutdown.") end
+    end
+    if savedAgilityLocked ~= hideAgilityLocked then
+        if PersistentDB:SetBool("hideAgilityLocked", hideAgilityLocked) then savedAgilityLocked = hideAgilityLocked
+        else log("Heist Helper: Agility-locked setting could not be saved; will retry on shutdown.") end
+    end
     if savedLineWidth ~= highlights.lineWidth then
         if PersistentDB:SetInt("highlightLineWidth", highlights.lineWidth) then savedLineWidth = highlights.lineWidth
         else log("Heist Helper: line thickness could not be saved; will retry on shutdown.") end
@@ -168,6 +182,22 @@ local app = {
         highlights:setThroughWalls(not highlights.throughWalls)
         savePreferences()
     end,
+    hidesLockedSafes = function() return hideLockedSafes end,
+    hidesAgilityLocked = function() return hideAgilityLocked end,
+    toggleLockedSafes = function()
+        hideLockedSafes = not hideLockedSafes
+        applyLocks()
+        highlightsDirty = true
+        wake(false)
+        savePreferences()
+    end,
+    toggleAgilityLocked = function()
+        hideAgilityLocked = not hideAgilityLocked
+        applyLocks()
+        trackingDirty, highlightsDirty = true, true
+        wake(false)
+        savePreferences()
+    end,
     toggleCompletedMode = function()
         highlights:setCompletedMode(highlights.completedMode == "hide" and "grey" or "hide")
         highlightsDirty = true
@@ -185,6 +215,18 @@ local function setDetectedProfile(key)
     trackingDirty, highlightsDirty, bodiesDirty, skillDirty = true, true, true, true
     movementPlayer, movementTile = nil, nil
     synchronizeChat()
+end
+
+local function agilityAccess()
+    local ok, level = pcall(function() return Player.GetLevelGameplay(SkillType.AGILITY) end)
+    return ok and type(level) == "number" and level or nil
+end
+
+-- Recomputed only when a level, the heist or a setting changes, so the tracker sees a
+-- new excluded set only then
+applyLocks = function()
+    locks = hideAgilityLocked and currentHeist ~= nil and Locks.locked(currentHeist.key, agilityLevel) or nil
+    highlights:setLocked(locks ~= nil and locks.parents or nil, hideLockedSafes and not safeEligible)
 end
 
 local function safeAccess()
@@ -237,10 +279,13 @@ local function onLogic(event)
         setDetectedProfile(detectedKey)
     end
     if currentHeist ~= nil then
-        if skillDirty then safeEligible, skillDirty = safeAccess(), false end
+        if skillDirty then
+            safeEligible, agilityLevel, skillDirty = safeAccess(), agilityAccess(), false
+            applyLocks()
+        end
         if trackingDirty then
             trackingDirty = false
-            tracker:update(event.logicTick, currentHeist, true, safeEligible)
+            tracker:update(event.logicTick, currentHeist, true, safeEligible, locks ~= nil and locks.fields or nil)
         end
         if bodiesDirty and highlights.enabled and highlights.roles.body
             and currentHeist.key == "hereditas" then
@@ -398,12 +443,22 @@ subscribe(Event.InventoryAdded, "heist-helper-bag-added", backpackEvent)
 subscribe(Event.InventoryUpdated, "heist-helper-bag-updated", backpackEvent)
 subscribe(Event.InventoryRemoved, "heist-helper-bag-removed", backpackEvent)
 subscribe(Event.SkillTransmit, "heist-helper-safe-access", function(event)
-    if currentHeist == nil or event.skill ~= SkillType.THIEVING or event.oldGameplayLevel == event.newGameplayLevel then return end
+    if currentHeist == nil or event.oldGameplayLevel == event.newGameplayLevel then return end
     local level = event.newGameplayLevel
     if type(level) ~= "number" or level ~= level or level < 0 then return end
+    if event.skill == SkillType.AGILITY then
+        -- Boosts count, as they do for safes
+        agilityLevel = level
+        applyLocks()
+        trackingDirty, highlightsDirty = true, true
+        wake(false)
+        return
+    end
+    if event.skill ~= SkillType.THIEVING then return end
     local eligible = level >= (currentHeist.key == "hereditas" and 102 or 114)
     if eligible ~= safeEligible then
-        safeEligible, skillDirty, trackingDirty = eligible, false, true
+        safeEligible, skillDirty, trackingDirty, highlightsDirty = eligible, false, true, true
+        applyLocks()
         wake(false)
     end
 end)

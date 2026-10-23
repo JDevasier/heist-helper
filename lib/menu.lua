@@ -2,7 +2,7 @@
 -- Switches update their existing components in place.
 local ScrollPanel = require("lib/scroll_panel")
 local Menu = {}
-local CONTENT_HEIGHT = 344
+local CONTENT_HEIGHT = 430
 local INK, MUTED, GOLD = 0xE2E8EDFF, 0x9EAFBBFF, 0xD8C18FFF
 
 function Menu.build(host, app)
@@ -158,6 +158,12 @@ function Menu.build(host, app)
         end
         button(highlights, "-", highlightWidth - 108, 180, 24, 26, function() changeWidth(-1) end)
         button(highlights, "+", highlightWidth - 34, 180, 24, 26, function() changeWidth(1) end)
+        local locked, lockedWidth = card(344, 76)
+        text(locked, "LOCKED LOOT", 10, 5, lockedWidth - 20, 20, GOLD)
+        checkbox(locked, "Hide locked safes", 10, 26, lockedWidth - 20,
+            app.hidesLockedSafes, app.toggleLockedSafes)
+        checkbox(locked, "Hide Agility-locked loot", 10, 50, lockedWidth - 20,
+            app.hidesAgilityLocked, app.toggleAgilityLocked)
         scroll:setContentHeight(CONTENT_HEIGHT)
         -- Resize only rebuilds when available content width changes.
         layer:Subscribe(ui.Hook.ONRESIZE, function()
